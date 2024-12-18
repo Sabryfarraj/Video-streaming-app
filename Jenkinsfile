@@ -1,44 +1,41 @@
 pipeline {
     agent any
-
+    
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-        DOCKER_USERNAME = 'sabryfarraj'
+        DOCKER_CREDENTIALS = credentials('docker-hub-credentials')
     }
-
+    
     stages {
         stage('Build Images') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_USERNAME}/auth-service:${BUILD_NUMBER} ./backend/auth-service"
-                    sh "docker build -t ${DOCKER_USERNAME}/video-service:${BUILD_NUMBER} ./backend/video-service"
-                    sh "docker build -t ${DOCKER_USERNAME}/storage-service:${BUILD_NUMBER} ./backend/storage-service"
-                    sh "docker build -t ${DOCKER_USERNAME}/frontend:${BUILD_NUMBER} ./frontend"
+                    bat "docker build -t sabryfarraj/auth-service:latest ./backend/auth-service"
+                    bat "docker build -t sabryfarraj/video-service:latest ./backend/video-service"
+                    bat "docker build -t sabryfarraj/storage-service:latest ./backend/storage-service"
+                    bat "docker build -t sabryfarraj/frontend:latest ./frontend"
                 }
             }
         }
-
+        
         stage('Login to DockerHub') {
             steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                bat "docker login -u %DOCKER_CREDENTIALS_USR% -p %DOCKER_CREDENTIALS_PSW%"
             }
         }
-
+        
         stage('Push Images') {
             steps {
-                script {
-                    sh "docker push ${DOCKER_USERNAME}/auth-service:${BUILD_NUMBER}"
-                    sh "docker push ${DOCKER_USERNAME}/video-service:${BUILD_NUMBER}"
-                    sh "docker push ${DOCKER_USERNAME}/storage-service:${BUILD_NUMBER}"
-                    sh "docker push ${DOCKER_USERNAME}/frontend:${BUILD_NUMBER}"
-                }
+                bat "docker push sabryfarraj/auth-service:latest"
+                bat "docker push sabryfarraj/video-service:latest"
+                bat "docker push sabryfarraj/storage-service:latest"
+                bat "docker push sabryfarraj/frontend:latest"
             }
         }
     }
-
+    
     post {
         always {
-            sh 'docker logout'
+            bat "docker logout"
         }
     }
 }
